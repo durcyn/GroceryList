@@ -1,0 +1,5 @@
+## Interface: 50001
+## Title: Grocery List 
+## Description: Simplify your grocery shopping tasks.
+
+shop.lua
