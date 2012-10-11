@@ -44,13 +44,17 @@ btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 btn:SetScript("OnClick", function()
 	local groceries = {}
+	local havebags = {}
 	for bag = 0,4 do 
 		local slots = GetContainerNumSlots(bag)
 		for slot = 1, slots do
 			local id = GetContainerItemID(bag, slot)
 			local count = select(2, GetContainerItemInfo(bag, slot))
-			if id and items[id] and count then
-				groceries[id] = groceries[id] and groceries[id] + count or count
+			if id and count then
+				for k,v in pairs(items) do
+					if k == id then groceries[id] = groceries[id] and groceries[id] + count or count end
+					if v.bag == id then havebags[id] = havebags[id] and havebags[id] + count or count end
+				end
 			end
 		end
 	end
@@ -59,7 +63,9 @@ btn:SetScript("OnClick", function()
 	for id, count in pairs(groceries) do
 		for grocery, data in pairs(items) do
 			if id == grocery and count >= data.count then
-				table.insert(shopping, data.bag)
+				local need = floor(count/data.count)
+				local have = havebags[data.bag] or 0
+				shopping[data.bag] = need - have
 			end
 		end
 	end
@@ -68,9 +74,9 @@ btn:SetScript("OnClick", function()
 	for merchitem = 1, merchitems do 
 		local link = GetMerchantItemLink(merchitem)
 	        local id = tonumber(string.match(link, "item:(%d+):"))
-		for _, bag in pairs(shopping) do
-			if id == bag then
-				BuyMerchantItem(merchitem)
+		for bag, count in pairs(shopping) do
+			if id == bag and count > 0 then
+				BuyMerchantItem(merchitem, count)
 			end
 		end
 	end
